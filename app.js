@@ -760,6 +760,43 @@ window.semakKuiz = function() {
         certForm.style.display = 'none';
         failActions.style.display = 'flex';
     }
+
+    // AUTO-RECORD KEPUTUSAN UNTUK STATISTIK PdP
+    const studentName = (document.getElementById('quiz-student-name')?.value || '').trim() || 'Calon (Tanpa Nama)';
+    const studentClass = (document.getElementById('quiz-student-class')?.value || '').trim() || '-';
+
+    // Auto-fill borang slip PDF jika pelajar isi nama di kuiz
+    const certNameInput = document.getElementById('cert-name');
+    if (certNameInput && studentName !== 'Calon (Tanpa Nama)' && !certNameInput.value) {
+        certNameInput.value = studentName;
+    }
+    const certProgramInput = document.getElementById('cert-program');
+    if (certProgramInput && studentClass !== '-' && !certProgramInput.value) {
+        certProgramInput.value = studentClass;
+    }
+
+    const testRecord = {
+        id: 'ADAS-' + Date.now().toString().slice(-6),
+        timestamp: new Date().toLocaleString('ms-MY', { 
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit', 
+            hour12: true 
+        }),
+        name: studentName,
+        group: studentClass,
+        score: score,
+        total: total,
+        percentage: Math.round(percentage),
+        status: percentage >= 75 ? 'LULUS' : 'GAGAL'
+    };
+
+    if (typeof window.rekodKeputusanUjian === 'function') {
+        window.rekodKeputusanUjian(testRecord);
+    }
 };
 
 window.resetKuiz = function() {
