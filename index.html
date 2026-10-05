@@ -645,12 +645,20 @@
                         
                         <!-- Panel Info Dinamik -->
                         <div id="wiring-info-panel" class="card mt-4" style="background: rgba(15,23,42,0.8); border: 1px dashed var(--color-cyan); padding: 20px; display: none;">
-                            <h4 id="wi-title" style="color: var(--color-cyan); margin-bottom: 10px;">-</h4>
-                            <p id="wi-desc" style="color: var(--text-secondary); margin-bottom: 15px;">-</p>
-                            <div id="wi-signals" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+                            <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
+                                <div id="wi-img-container" style="display: none; flex: 0 0 250px;">
+                                    <img id="wi-img" src="" alt="Komponen Fizikal" style="width: 100%; border-radius: 8px; border: 2px solid var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                                </div>
+                                <div style="flex: 1; min-width: 250px;">
+                                    <h4 id="wi-title" style="color: var(--color-cyan); margin-bottom: 10px;">-</h4>
+                                    <p id="wi-desc" style="color: var(--text-secondary); margin-bottom: 15px; line-height: 1.5;">-</p>
+                                    <div id="wi-signals" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+                                </div>
+                            </div>
                         </div>
 
                     </div>
+                </div>
                 </div>
 
                 <style>
@@ -714,6 +722,7 @@
                         'huskylens': {
                             title: 'HuskyLens AI Vision',
                             desc: 'Kamera pintar (Smart Camera) yang menggunakan kecerdasan buatan terbenam untuk mengecam garisan panduan (Line Tracking) dan membaca papan tanda had laju (QR Tag Recognition).',
+                            img: 'assets/huskylens_ai.jpg',
                             signals: [
                                 { name: 'I2C (SDA/SCL)', color: '#3b82f6' },
                                 { name: 'Kuasa 5V', color: '#ef4444' }
@@ -722,6 +731,7 @@
                         'ultrasonic': {
                             title: 'Sensor Ultrasonik (HC-SR04)',
                             desc: 'Penderia frekuensi tinggi yang mengukur jarak halangan di hadapan (Obstacle Detection). Berfungsi sebagai input untuk Sistem Brek Kecemasan Automatik (AEB).',
+                            img: 'assets/ultrasonic.jpg',
                             signals: [
                                 { name: 'Isyarat Digital (Trig/Echo)', color: '#10b981' },
                                 { name: 'Kuasa 5V', color: '#ef4444' }
@@ -730,6 +740,7 @@
                         'ecu': {
                             title: 'Arduino ECU (Electronic Control Unit)',
                             desc: 'Otak sistem ADAS. Ia membaca data I2C dari kamera, mengira formula Time-To-Collision (TTC) berdasarkan jarak sensor ultrasonik, dan menghantar isyarat memandu kepada Motor Driver.',
+                            img: 'assets/arduino_ecu.jpg',
                             signals: [
                                 { name: 'Pemprosesan Logik', color: '#06b6d4' }
                             ]
@@ -756,6 +767,8 @@
                         const title = document.getElementById('wi-title');
                         const desc = document.getElementById('wi-desc');
                         const signals = document.getElementById('wi-signals');
+                        const imgContainer = document.getElementById('wi-img-container');
+                        const imgEl = document.getElementById('wi-img');
                         
                         const data = nodeData[id];
                         if(!data) return;
@@ -770,6 +783,13 @@
 
                         title.innerHTML = '<i class="fa-solid fa-circle-info"></i> ' + data.title;
                         desc.textContent = data.desc;
+                        
+                        if (data.img) {
+                            imgEl.src = data.img;
+                            imgContainer.style.display = 'block';
+                        } else {
+                            imgContainer.style.display = 'none';
+                        }
                         
                         signals.innerHTML = '';
                         data.signals.forEach(sig => {
