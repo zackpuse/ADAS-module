@@ -6,7 +6,7 @@ const ADAS_STORAGE_KEY = 'adas_quiz_records';
 const ADAS_SHEET_URL_KEY = 'adas_google_script_url';
 
 // URL Google Apps Script Web App Pusat (Boleh diletakkan di sini agar semua peranti pelajar sync automatik)
-const ADAS_CENTRAL_GOOGLE_SCRIPT_URL = "";
+const ADAS_CENTRAL_GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgnDAkEYwn03slsFaVr2HbG3yBVy_VV4Pb5TjuerGJg3JIElmprVNU2oK0MCBrYGAp/exec";
 
 // Dapatkan URL aktif sama ada dari kod atau LocalStorage
 function getActiveScriptUrl() {
