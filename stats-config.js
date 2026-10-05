@@ -5,6 +5,17 @@
 const ADAS_STORAGE_KEY = 'adas_quiz_records';
 const ADAS_SHEET_URL_KEY = 'adas_google_script_url';
 
+// URL Google Apps Script Web App Pusat (Boleh diletakkan di sini agar semua peranti pelajar sync automatik)
+const ADAS_CENTRAL_GOOGLE_SCRIPT_URL = "";
+
+// Dapatkan URL aktif sama ada dari kod atau LocalStorage
+function getActiveScriptUrl() {
+    if (ADAS_CENTRAL_GOOGLE_SCRIPT_URL && ADAS_CENTRAL_GOOGLE_SCRIPT_URL.trim().startsWith('http')) {
+        return ADAS_CENTRAL_GOOGLE_SCRIPT_URL.trim();
+    }
+    return (localStorage.getItem(ADAS_SHEET_URL_KEY) || '').trim();
+}
+
 // Dapatkan rekod dari storan tempatan
 function getAdasLocalRecords() {
     try {
@@ -34,11 +45,11 @@ window.rekodKeputusanUjian = async function(record) {
     console.log('[Statistik ADAS] Rekod tempatan disimpan:', record);
 
     // 2. Hantar ke Google Sheets jika URL telah ditetapkan
-    const scriptUrl = localStorage.getItem(ADAS_SHEET_URL_KEY);
-    if (scriptUrl && scriptUrl.trim().startsWith('http')) {
+    const scriptUrl = getActiveScriptUrl();
+    if (scriptUrl && scriptUrl.startsWith('http')) {
         try {
             console.log('[Statistik ADAS] Menghantar ke Google Sheets...');
-            await fetch(scriptUrl.trim(), {
+            await fetch(scriptUrl, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: {
@@ -55,8 +66,8 @@ window.rekodKeputusanUjian = async function(record) {
 
 // Tarik data daripada Google Sheets (untuk papan pemuka statistik)
 window.tarikDataGoogleSheets = async function(customUrl) {
-    const scriptUrl = customUrl || localStorage.getItem(ADAS_SHEET_URL_KEY);
-    if (!scriptUrl || !scriptUrl.trim().startsWith('http')) {
+    const scriptUrl = customUrl || getActiveScriptUrl();
+    if (!scriptUrl || !scriptUrl.startsWith('http')) {
         return {
             success: false,
             message: 'URL Google Sheet belum dikonfigurasi.',
