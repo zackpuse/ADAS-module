@@ -687,6 +687,32 @@ window.semakKuiz = function() {
     const form = document.getElementById('theory-quiz-form');
     if (!form) return;
     
+    // PENGESAHAN WAJIB: NAMA DAN PROGRAM / KELAS
+    const studentNameInput = document.getElementById('quiz-student-name');
+    const studentClassInput = document.getElementById('quiz-student-class');
+    const studentName = (studentNameInput?.value || '').trim();
+    const studentClass = (studentClassInput?.value || '').trim();
+
+    if (!studentName || !studentClass) {
+        alert("PERHATIAN:\nSila masukkan Nama Calon/Pelajar dan Program/Kelas terlebih dahulu sebelum menyemak atau menghantar jawapan kuiz.");
+        
+        if (!studentName && studentNameInput) {
+            studentNameInput.focus();
+            studentNameInput.style.borderColor = '#ef4444';
+            studentNameInput.style.boxShadow = '0 0 12px rgba(239, 68, 68, 0.5)';
+        } else if (!studentClass && studentClassInput) {
+            studentClassInput.focus();
+            studentClassInput.style.borderColor = '#ef4444';
+            studentClassInput.style.boxShadow = '0 0 12px rgba(239, 68, 68, 0.5)';
+        }
+        
+        const box = document.getElementById('quiz-student-box');
+        if (box) {
+            box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+    }
+
     // Check all questions
     const answers = {
         q1: 'B',
@@ -762,8 +788,7 @@ window.semakKuiz = function() {
     }
 
     // AUTO-RECORD KEPUTUSAN UNTUK STATISTIK PdP
-    const studentName = (document.getElementById('quiz-student-name')?.value || '').trim() || 'Calon (Tanpa Nama)';
-    const studentClass = (document.getElementById('quiz-student-class')?.value || '').trim() || '-';
+    // (Menggunakan studentName dan studentClass yang telah disahkan di awal fungsi)
 
     // Auto-fill borang slip PDF jika pelajar isi nama di kuiz
     const certNameInput = document.getElementById('cert-name');
@@ -802,9 +827,17 @@ window.semakKuiz = function() {
 window.resetKuiz = function() {
     const form = document.getElementById('theory-quiz-form');
     const resultContainer = document.getElementById('quiz-result-container');
+    const savedName = document.getElementById('quiz-student-name')?.value || '';
+    const savedClass = document.getElementById('quiz-student-class')?.value || '';
+    
     form.reset();
+    
+    if (savedName) document.getElementById('quiz-student-name').value = savedName;
+    if (savedClass) document.getElementById('quiz-student-class').value = savedClass;
+
     form.style.display = 'flex';
     resultContainer.style.display = 'none';
+    if (typeof window.updateQuizProgress === 'function') window.updateQuizProgress();
 };
 
 window.janaPDF = function() {
