@@ -223,6 +223,9 @@
                 </p>
             </div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="segerakDataTempatan()" id="btn-sync-local" title="Hantar rekod yang tersimpan di peranti ini ke Google Sheets" style="background: linear-gradient(135deg, #10b981, #059669); border-color: #10b981;">
+                    <i class="fa-solid fa-cloud-arrow-up" id="sync-icon"></i> Hantar Rekod Sedia Ada
+                </button>
                 <button class="btn btn-outline" onclick="muatDataStatistik(true)" title="Muat semula data dari Google Sheets / Local">
                     <i class="fa-solid fa-rotate" id="refresh-icon"></i> Muat Semula
                 </button>
@@ -807,6 +810,40 @@ function doPost(e) {
             }).catch(err => {
                 alert('Sila salin teks kod secara manual.');
             });
+        }
+
+        async function segerakDataTempatan() {
+            const localRecords = getAdasLocalRecords();
+            if (localRecords.length === 0) {
+                alert("Tiada rekod ujian tempatan untuk dihantar.");
+                return;
+            }
+
+            if (!confirm(`Terdapat ${localRecords.length} rekod ujian sedia ada di peranti ini.\nAdakah anda ingin memuat naik (push) semua rekod ini ke Google Sheets sekarang?`)) {
+                return;
+            }
+
+            const btn = document.getElementById('btn-sync-local');
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+
+            tunjukBanner(`Memulakan penghantaran ${localRecords.length} rekod ke Google Sheets...`, 'info');
+
+            const result = await window.segerakSemuaDataTempatanKeGoogleSheet((semasa, jumlah) => {
+                btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Menghantar (${semasa}/${jumlah})...`;
+            });
+
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+
+            if (result.success) {
+                tunjukBanner(result.message, 'success');
+                alert(result.message + "\nSila buka dan semak Google Sheets anda sekarang.");
+                await muatDataStatistik(true);
+            } else {
+                tunjukBanner(result.message, 'warning');
+                alert(result.message);
+            }
         }
 
         function padamSemuaDataTempatan() {

@@ -111,3 +111,48 @@ window.tarikDataGoogleSheets = async function(customUrl) {
         };
     }
 };
+
+// Segerak (push) semua data sedia ada di LocalStorage ke Google Sheets
+window.segerakSemuaDataTempatanKeGoogleSheet = async function(onProgress) {
+    const records = getAdasLocalRecords();
+    const scriptUrl = getActiveScriptUrl();
+    if (!scriptUrl || !scriptUrl.startsWith('http')) {
+        return { success: false, message: 'URL Google Sheet belum dikonfigurasi.' };
+    }
+    if (records.length === 0) {
+        return { success: false, message: 'Tiada rekod data tempatan untuk disegerakkan.' };
+    }
+
+    let successCount = 0;
+    // Hantar mengikut urutan lama ke baharu supaya baris di spreadsheet tersusun mengikut masa
+    const recordsToPush = [...records].reverse();
+
+    for (let i = 0; i < recordsToPush.length; i++) {
+        const r = recordsToPush[i];
+        if (typeof onProgress === 'function') {
+            onProgress(i + 1, recordsToPush.length);
+        }
+        try {
+            await fetch(scriptUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'text/plain;charset=utf-8'
+                },
+                body: JSON.stringify(r)
+            });
+            successCount++;
+            // Jeda 400ms antara rekod bagi mengelakkan Google Apps Script rate limit
+            await new Promise(res => setTimeout(res, 400));
+        } catch (err) {
+            console.error('Ralat semasa sync rekod ID ' + r.id + ':', err);
+        }
+    }
+
+    return {
+        success: true,
+        count: successCount,
+        total: recordsToPush.length,
+        message: `Berjaya memuat naik ${successCount} daripada ${recordsToPush.length} rekod ke Google Sheets!`
+    };
+};
