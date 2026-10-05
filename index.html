@@ -18,7 +18,7 @@
     <!-- Chart.js for analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- html2canvas and jsPDF loaded at end of body to avoid duplicate import -->
-    <link rel="stylesheet" href="style.css?v=17">
+    <link rel="stylesheet" href="style.css?v=20">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.jpg">
     <meta name="theme-color" content="#06B6D4">
@@ -599,7 +599,7 @@
                     </div>
                 </div>
                 <div class="wiring-container">
-                    <div class="card card-glow" style="padding: 30px;">
+                    <div class="card card-glow wiring-card">
                         <h3 class="text-cyan mb-3"><i class="fa-solid fa-microchip"></i> Gambarajah Blok Sambungan Komponen (Block Diagram)</h3>
                         <p class="text-secondary mb-4">Klik (sentuh) pada mana-mana blok untuk melihat jenis isyarat dan penerangan fungsinya dalam sistem kenderaan autonomi ini.</p>
                         
@@ -607,48 +607,48 @@
                             
                             <!-- Bateri -->
                             <div class="bd-node" id="node-battery" onclick="showNodeInfo('battery')">
-                                <i class="fa-solid fa-car-battery text-red" style="font-size: 2rem;"></i>
+                                <i class="fa-solid fa-car-battery text-red"></i>
                                 <span>Bateri 7.4V (Li-Po)</span>
                             </div>
 
                             <!-- Huskylens -->
-                            <div class="bd-node" id="node-huskylens" onclick="showNodeInfo('huskylens')" >
-                                <i class="fa-solid fa-camera text-gold" style="font-size: 2rem;"></i>
+                            <div class="bd-node" id="node-huskylens" onclick="showNodeInfo('huskylens')">
+                                <i class="fa-solid fa-camera text-gold"></i>
                                 <span>HuskyLens AI Vision</span>
                             </div>
 
                             <!-- Ultrasonic -->
-                            <div class="bd-node" id="node-ultrasonic" onclick="showNodeInfo('ultrasonic')" >
-                                <i class="fa-solid fa-wifi text-green" style="font-size: 2rem;"></i>
+                            <div class="bd-node" id="node-ultrasonic" onclick="showNodeInfo('ultrasonic')">
+                                <i class="fa-solid fa-wifi text-green"></i>
                                 <span>Sensor Ultrasonik</span>
                             </div>
 
                             <!-- Arduino ECU -->
-                            <div class="bd-node bd-main" id="node-ecu" onclick="showNodeInfo('ecu')" >
-                                <i class="fa-solid fa-server text-cyan" style="font-size: 2.5rem;"></i>
+                            <div class="bd-node bd-main" id="node-ecu" onclick="showNodeInfo('ecu')">
+                                <i class="fa-solid fa-server text-cyan"></i>
                                 <span>Arduino ECU (Mikropengawal)</span>
                             </div>
 
                             <!-- Motor Driver -->
-                            <div class="bd-node" id="node-driver" onclick="showNodeInfo('driver')" >
-                                <i class="fa-solid fa-microchip text-purple" style="font-size: 2rem;"></i>
+                            <div class="bd-node" id="node-driver" onclick="showNodeInfo('driver')">
+                                <i class="fa-solid fa-microchip text-purple"></i>
                                 <span>Pemacu Motor (Motor Driver)</span>
                             </div>
 
                             <!-- DC Motors -->
-                            <div class="bd-node" id="node-motors" onclick="showNodeInfo('motors')" >
-                                <i class="fa-solid fa-gear text-amber" style="font-size: 2rem;"></i>
+                            <div class="bd-node" id="node-motors" onclick="showNodeInfo('motors')">
+                                <i class="fa-solid fa-gear text-amber"></i>
                                 <span>Motor Arus Terus (Roda)</span>
                             </div>
 
                         </div>
                         <!-- Panel Info Dinamik -->
                         <div id="wiring-info-panel" class="card mt-4" style="background: rgba(15,23,42,0.8); border: 1px dashed var(--color-cyan); padding: 20px; display: none;">
-                            <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
+                            <div class="wiring-info-content" style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
                                 <div id="wi-img-container" style="display: none; flex: 0 0 250px;">
                                     <img id="wi-img" src="" alt="Komponen Fizikal" style="width: 100%; border-radius: 8px; border: 2px solid var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
                                 </div>
-                                <div style="flex: 1; min-width: 250px;">
+                                <div class="wi-text-container" style="flex: 1; min-width: 250px;">
                                     <h4 id="wi-title" style="color: var(--color-cyan); margin-bottom: 10px;">-</h4>
                                     <p id="wi-desc" style="color: var(--text-secondary); margin-bottom: 15px; line-height: 1.5;">-</p>
                                     <div id="wi-signals" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
@@ -659,20 +659,24 @@
                     </div>
                 </div>
                 <style>
+                    .wiring-container {
+                        width: 100%;
+                        max-width: 100%;
+                        box-sizing: border-box;
+                    }
+                    .wiring-card {
+                        padding: 30px;
+                        box-sizing: border-box;
+                    }
                     .block-diagram {
-                        display: grid;
-                        grid-template-columns: 1fr 1.5fr 1fr 1fr;
-                        grid-template-rows: auto auto auto;
-                        gap: 30px;
-                        align-items: center;
-                        position: relative;
-                        padding: 20px 0;
+                        width: 100%;
+                        box-sizing: border-box;
                     }
                     .bd-node {
                         background: var(--bg-card);
                         border: 2px solid var(--border-color);
                         border-radius: 12px;
-                        padding: 15px;
+                        padding: 16px 12px;
                         display: flex;
                         flex-direction: column;
                         align-items: center;
@@ -682,28 +686,99 @@
                         transition: all 0.3s ease;
                         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
                         z-index: 2;
+                        box-sizing: border-box;
+                        min-width: 0;
                     }
-                    .bd-node:hover {
+                    .bd-node i {
+                        font-size: 2rem;
+                    }
+                    .bd-node:hover, .bd-node:active {
                         border-color: var(--color-cyan);
-                        transform: translateY(-5px);
+                        transform: translateY(-4px);
                         box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
                     }
                     .bd-node span {
                         font-weight: 600;
                         font-size: 0.9rem;
+                        line-height: 1.3;
                     }
                     .bd-main {
                         border-color: var(--color-cyan);
                         background: rgba(6, 182, 212, 0.1);
                     }
-                    #node-battery { grid-column: 2; grid-row: 1; }
                     .signal-badge {
                         padding: 5px 10px;
                         border-radius: 20px;
                         font-size: 0.8rem;
                         font-weight: bold;
                     }
-                    /* Simplified connections representation using borders */
+
+                    /* DESKTOP LAYOUT (>= 769px) */
+                    @media (min-width: 769px) {
+                        .block-diagram {
+                            display: grid;
+                            grid-template-columns: 1fr 1.4fr 1.1fr 1.1fr;
+                            grid-template-rows: auto auto auto;
+                            gap: 25px;
+                            align-items: center;
+                            position: relative;
+                            padding: 20px 0;
+                        }
+                        #node-battery { grid-column: 2; grid-row: 1; }
+                        #node-huskylens { grid-column: 1; grid-row: 2; }
+                        #node-ultrasonic { grid-column: 1; grid-row: 3; }
+                        #node-ecu { grid-column: 2; grid-row: 2; }
+                        #node-driver { grid-column: 3; grid-row: 2; }
+                        #node-motors { grid-column: 4; grid-row: 2; }
+                    }
+
+                    /* MOBILE & TABLET LAYOUT (<= 768px) */
+                    @media (max-width: 768px) {
+                        .wiring-card {
+                            padding: 16px 10px !important;
+                        }
+                        .block-diagram {
+                            display: grid !important;
+                            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                            gap: 10px !important;
+                            padding: 10px 0 !important;
+                        }
+                        .bd-node {
+                            grid-column: auto !important;
+                            grid-row: auto !important;
+                            padding: 14px 6px !important;
+                        }
+                        .bd-node i {
+                            font-size: 1.7rem !important;
+                        }
+                        .bd-node span {
+                            font-size: 0.78rem !important;
+                            line-height: 1.2 !important;
+                        }
+                        /* Logical mobile order */
+                        #node-huskylens { order: 1; }
+                        #node-ultrasonic { order: 2; }
+                        #node-ecu { order: 3; }
+                        #node-battery { order: 4; }
+                        #node-driver { order: 5; }
+                        #node-motors { order: 6; }
+
+                        #wiring-info-panel {
+                            padding: 14px !important;
+                        }
+                        #wi-img-container {
+                            flex: 1 1 100% !important;
+                            text-align: center;
+                        }
+                        #wi-img {
+                            max-width: 220px !important;
+                            margin: 0 auto;
+                        }
+                        .wi-text-container {
+                            min-width: 0 !important;
+                            width: 100% !important;
+                        }
+                    }
                 </style>
 
                 <script>
@@ -1641,21 +1716,19 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="app.js?v=25"></script>
-    <script src="i18n.js?v=10"></script>
+    <script src="app.js?v=27"></script>
+    <script src="i18n.js?v=11"></script>
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').then(reg => {
-                    reg.update();
-                });
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let registration of registrations) {
+                    registration.unregister();
+                }
             });
             if ('caches' in window) {
                 caches.keys().then(names => {
                     for (let name of names) {
-                        if (name !== 'qr-rover-v22') {
-                            caches.delete(name);
-                        }
+                        caches.delete(name);
                     }
                 });
             }
