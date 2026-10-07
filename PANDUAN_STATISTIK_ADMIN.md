@@ -23,20 +23,21 @@ Dokumen ini mengandungi maklumat penting dan pautan capaian rahsia untuk semakan
 ---
 
 ## 📋 Ciri-Ciri Utama di Halaman Statistik (`stats.html`)
-1. **Analisis KPI Automatik:**
-   - Jumlah calon yang telah selesai menduduki ujian.
-   - Kadar kelulusan keseluruhan (% calon capai markah ≥ 75%).
-   - Purata markah dan peratusan keseluruhan.
-   - Skor tertinggi dan terendah.
+1. **Analisis KPI Dinamik & Mod Pilihan Pengiraan:**
+   - **Mod Markah Terbaik Calon (Lalai):** Sistem secara automatik dan dinamik mengumpul rekod mengikut nama calon (walaupun terdapat calon baharu atau calon menjawab ujian berulang kali seperti 2x, 3x, 5x). Hanya markah percubaan tertinggi setiap calon dikira dalam statistik keberkesanan.
+   - **Mod Semua Percubaan:** Membolehkan pentadbir melihat keseluruhan rekod percubaan mentah.
+   - **Skor Tertinggi & Terendah:** Format jelas `Max: 10 | Min: X` yang dikira secara langsung daripada data terkini.
+   - Kadar kelulusan (% calon capai markah ≥ 75%) dan purata markah keseluruhan.
 2. **Graf Analisis Interaktif (Chart.js):**
    - Taburan skor calon mengikut 4 gred (Perlu Bimbingan, Sederhana, Lulus Baik, Cemerlang).
-   - Nisbah Lulus vs Gagal (Doughnut Chart).
+   - Nisbah Lulus vs Gagal (Doughnut Chart) yang mengikut mod analisis pilihan.
 3. **Jadual Data Lengkap Calon:**
    - Senarai penuh mengandungi Tarikh & Masa, Nama Calon, Program/Kelas, Markah, Peratus, dan Status Kelulusan.
+   - Penunjuk bilangan cubaan automatik (cth: `2x cubaan`, `3x cubaan`) bagi calon yang mengulang ujian.
    - Fungsi Carian Pantas (Search) mengikut nama atau kelas.
    - Penapis status (Semua / Lulus Sahaja / Gagal Sahaja).
 4. **Alat Pengurusan Data:**
-   - **Eksport CSV / Excel:** Muat turun data untuk laporan penyelidikan atau kajian tindakan TVET.
+   - **Eksport CSV / Excel:** Muat turun data untuk laporan penyelidikan atau kajian tindakan TVET (menyertakan kolum bilangan cubaan calon).
    - **Cetak Laporan:** Format cetakan kemas untuk laporan fizikal atau simpanan fail PDF.
    - **Hantar Rekod Sedia Ada:** Memuat naik rekod ujian lama yang tersimpan di peranti tempatan ke Google Sheets secara automatik.
 

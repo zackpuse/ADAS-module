@@ -198,6 +198,56 @@
             white-space: pre-wrap;
             margin: 12px 0;
         }
+
+        .btn-mode-toggle {
+            display: inline-flex;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .btn-mode-pill {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 7px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-body);
+        }
+
+        .btn-mode-pill.active {
+            background: linear-gradient(135deg, var(--color-cyan), #0284c7);
+            color: #04121f;
+            font-weight: 700;
+            box-shadow: 0 2px 10px rgba(6, 182, 212, 0.35);
+        }
+
+        .btn-mode-pill:hover:not(.active) {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .badge-attempt {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--color-cyan);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            font-weight: 600;
+            vertical-align: middle;
+        }
     </style>
 </head>
 
@@ -247,13 +297,33 @@
         <!-- STATUS ALERT BANNER -->
         <div id="status-banner" style="display: none; padding: 14px 20px; border-radius: 8px; margin-bottom: 24px; font-size: 0.9rem;"></div>
 
+        <!-- PILIHAN MOD PENGIRAAN: MARKAH TERBAIK vs SEMUA PERCUBAAN -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; flex-wrap: wrap; gap: 14px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 18px;">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <span style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <i class="fa-solid fa-sliders text-cyan"></i> Mod Analisis:
+                </span>
+                <div class="btn-mode-toggle">
+                    <button type="button" class="btn-mode-pill active" id="mode-btn-best" onclick="tukarModAnalisis('best')" title="Kira rekod markah terbaik bagi setiap calon unik">
+                        <i class="fa-solid fa-trophy text-amber"></i> Markah Terbaik Calon
+                    </button>
+                    <button type="button" class="btn-mode-pill" id="mode-btn-all" onclick="tukarModAnalisis('all')" title="Kira semua rekod percubaan mentah termasuk cubaan ulangan">
+                        <i class="fa-solid fa-list-check"></i> Semua Percubaan
+                    </button>
+                </div>
+            </div>
+            <div id="mode-desc-note" style="font-size: 0.84rem; color: var(--color-cyan);">
+                <i class="fa-solid fa-circle-check text-green"></i> Mengambil kira <strong>markah percubaan tertinggi</strong> bagi setiap calon unik.
+            </div>
+        </div>
+
         <!-- 4 KPI CARDS -->
         <div class="stats-kpi-grid">
             <div class="kpi-card">
                 <i class="fa-solid fa-users kpi-icon text-cyan"></i>
                 <div class="kpi-label">Jumlah Calon Duduki Ujian</div>
                 <div class="kpi-value text-cyan" id="kpi-total-calon">0</div>
-                <div style="font-size: 0.82rem; color: var(--text-muted);">Calon telah selesai menjawab kuiz</div>
+                <div style="font-size: 0.82rem; color: var(--text-muted);" id="kpi-total-calon-sub">Calon telah selesai menjawab kuiz</div>
             </div>
 
             <div class="kpi-card">
@@ -273,8 +343,8 @@
             <div class="kpi-card">
                 <i class="fa-solid fa-ranking-star kpi-icon text-purple"></i>
                 <div class="kpi-label">Skor Tertinggi & Terendah</div>
-                <div class="kpi-value text-purple" id="kpi-max-min">- / -</div>
-                <div style="font-size: 0.82rem; color: var(--text-muted);">Julat prestasi pelajar</div>
+                <div class="kpi-value text-purple" id="kpi-max-min" style="font-size: 1.55rem; letter-spacing: -0.5px;">Max: - | Min: -</div>
+                <div style="font-size: 0.82rem; color: var(--text-muted);" id="kpi-max-min-sub">Berdasarkan markah terbaik calon</div>
             </div>
         </div>
 
@@ -470,6 +540,7 @@ function doPost(e) {
         let allRecords = [];
         let scoreChart = null;
         let passFailChart = null;
+        let analysisMode = 'best'; // 'best' (lalai) atau 'all'
 
         document.addEventListener('DOMContentLoaded', () => {
             const savedUrl = localStorage.getItem('adas_google_script_url');
@@ -478,6 +549,57 @@ function doPost(e) {
             }
             muatDataStatistik(false);
         });
+
+        function tukarModAnalisis(mod) {
+            analysisMode = mod;
+            const btnBest = document.getElementById('mode-btn-best');
+            const btnAll = document.getElementById('mode-btn-all');
+            const note = document.getElementById('mode-desc-note');
+
+            if (btnBest) btnBest.classList.toggle('active', mod === 'best');
+            if (btnAll) btnAll.classList.toggle('active', mod === 'all');
+
+            if (note) {
+                if (mod === 'best') {
+                    note.innerHTML = '<i class="fa-solid fa-circle-check text-green"></i> Mengambil kira <strong>markah percubaan tertinggi</strong> bagi setiap calon unik.';
+                } else {
+                    note.innerHTML = '<i class="fa-solid fa-clock-rotate-left text-cyan"></i> <strong>Mod Semua Percubaan:</strong> Memaparkan semua percubaan mentah termasuk rekod ulangan.';
+                }
+            }
+
+            kemaskiniPaparan();
+        }
+
+        function dapatkanRekodDiproses() {
+            if (analysisMode === 'all') {
+                return allRecords;
+            }
+
+            // Kumpul rekod terbaik bagi setiap calon secara dinamik (case-insensitive & normalize spaces)
+            const map = new Map();
+            allRecords.forEach(r => {
+                const rawName = (r.name || 'Calon (Tanpa Nama)').trim().replace(/\s+/g, ' ');
+                const key = rawName.toLowerCase();
+                const score = Number(r.score) || 0;
+                const pct = Number(r.percentage) || Math.round((score / (r.total || 10)) * 100);
+
+                if (!map.has(key)) {
+                    map.set(key, { ...r, name: rawName, _attemptCount: 1 });
+                } else {
+                    const exist = map.get(key);
+                    exist._attemptCount = (exist._attemptCount || 1) + 1;
+                    const exScore = Number(exist.score) || 0;
+                    const exPct = Number(exist.percentage) || 0;
+
+                    // Simpan markah tertinggi calon; jika sama markah, utamakan rekod terkini
+                    if (score > exScore || (score === exScore && pct >= exPct)) {
+                        map.set(key, { ...r, name: rawName, _attemptCount: exist._attemptCount });
+                    }
+                }
+            });
+
+            return Array.from(map.values());
+        }
 
         async function muatDataStatistik(paksaRefresh = false) {
             const refreshIcon = document.getElementById('refresh-icon');
@@ -541,16 +663,29 @@ function doPost(e) {
         }
 
         function kemaskiniPaparan() {
-            // 1. KPI Calculations
-            const total = allRecords.length;
+            // 1. Dapatkan rekod mengikut mod aktif (markah terbaik atau semua)
+            const records = dapatkanRekodDiproses();
+            const total = records.length;
+            const totalSemuaPercubaan = allRecords.length;
+
             document.getElementById('kpi-total-calon').textContent = total;
+            const subTotal = document.getElementById('kpi-total-calon-sub');
+            if (subTotal) {
+                if (analysisMode === 'best' && totalSemuaPercubaan !== total) {
+                    subTotal.textContent = `${total} calon unik (${totalSemuaPercubaan} jumlah percubaan)`;
+                } else {
+                    subTotal.textContent = 'Calon telah selesai menjawab kuiz';
+                }
+            }
 
             if (total === 0) {
                 document.getElementById('kpi-pass-rate').textContent = '0%';
                 document.getElementById('kpi-pass-count').textContent = '0 calon lulus (≥ 75%)';
                 document.getElementById('kpi-avg-score').textContent = '0 / 10';
                 document.getElementById('kpi-avg-pct').textContent = 'Purata: 0%';
-                document.getElementById('kpi-max-min').textContent = '- / -';
+                document.getElementById('kpi-max-min').textContent = 'Max: - | Min: -';
+                const subMaxMin = document.getElementById('kpi-max-min-sub');
+                if (subMaxMin) subMaxMin.textContent = 'Julat prestasi pelajar';
                 binaCarta([], 0, 0);
                 isiJadual([]);
                 return;
@@ -562,7 +697,7 @@ function doPost(e) {
             let maxScore = -1;
             let minScore = 999;
 
-            allRecords.forEach(r => {
+            records.forEach(r => {
                 const s = Number(r.score) || 0;
                 const p = Number(r.percentage) || Math.round((s / (r.total || 10)) * 100);
                 sumScore += s;
@@ -574,18 +709,39 @@ function doPost(e) {
                 if (s < minScore) minScore = s;
             });
 
+            // Rekod terendah mutlak dalam semua percubaan (untuk rujukan pentadbir)
+            let minMutlakSemua = minScore;
+            allRecords.forEach(r => {
+                const s = Number(r.score) || 0;
+                if (s < minMutlakSemua) minMutlakSemua = s;
+            });
+
             const passRate = Math.round((lulusCount / total) * 100);
             const avgScore = (sumScore / total).toFixed(1);
             const avgPct = Math.round(sumPct / total);
+            const displayMin = minScore === 999 ? 0 : minScore;
 
             document.getElementById('kpi-pass-rate').textContent = `${passRate}%`;
             document.getElementById('kpi-pass-count').textContent = `${lulusCount} daripada ${total} calon lulus`;
             document.getElementById('kpi-avg-score').textContent = `${avgScore} / 10`;
             document.getElementById('kpi-avg-pct').textContent = `Purata: ${avgPct}% markah`;
-            document.getElementById('kpi-max-min').textContent = `${maxScore} / ${minScore === 999 ? 0 : minScore}`;
+            document.getElementById('kpi-max-min').textContent = `Max: ${maxScore} | Min: ${displayMin}`;
+
+            const subMaxMin = document.getElementById('kpi-max-min-sub');
+            if (subMaxMin) {
+                if (analysisMode === 'best') {
+                    if (minMutlakSemua < displayMin) {
+                        subMaxMin.textContent = `Markah terbaik (Rekod awal terendah: ${minMutlakSemua})`;
+                    } else {
+                        subMaxMin.textContent = `Julat markah terbaik calon`;
+                    }
+                } else {
+                    subMaxMin.textContent = `Merangkumi semua percubaan`;
+                }
+            }
 
             // 2. Charts
-            binaCarta(allRecords, lulusCount, total - lulusCount);
+            binaCarta(records, lulusCount, total - lulusCount);
 
             // 3. Table
             tapisJadual();
@@ -691,8 +847,9 @@ function doPost(e) {
         function tapisJadual() {
             const query = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
             const statusFilter = document.getElementById('filter-status')?.value || 'ALL';
+            const baseRecords = dapatkanRekodDiproses();
 
-            const filtered = allRecords.filter(r => {
+            const filtered = baseRecords.filter(r => {
                 const matchName = (r.name || '').toLowerCase().includes(query) || (r.group || '').toLowerCase().includes(query);
                 const isLulus = r.status === 'LULUS' || (Number(r.percentage) >= 75);
                 const matchStatus = statusFilter === 'ALL' || (statusFilter === 'LULUS' && isLulus) || (statusFilter === 'GAGAL' && !isLulus);
@@ -725,11 +882,15 @@ function doPost(e) {
                     ? `<span class="badge-lulus"><i class="fa-solid fa-check"></i> LULUS</span>` 
                     : `<span class="badge-gagal"><i class="fa-solid fa-xmark"></i> GAGAL</span>`;
                 
+                const attemptBadge = (analysisMode === 'best' && r._attemptCount > 1)
+                    ? `<span class="badge-attempt" title="Calon menduduki ujian sebanyak ${r._attemptCount} kali. Paparan ini menunjukkan markah terbaiknya."><i class="fa-solid fa-arrows-rotate"></i> ${r._attemptCount}x cubaan</span>`
+                    : '';
+
                 html += `
                     <tr>
                         <td style="font-family: var(--font-mono); color: var(--text-muted);">${idx + 1}</td>
                         <td style="font-size: 0.85rem; color: var(--text-secondary);">${r.timestamp || '-'}</td>
-                        <td style="font-weight: 600; color: var(--text-primary);">${r.name || 'Calon (Tanpa Nama)'}</td>
+                        <td style="font-weight: 600; color: var(--text-primary);">${r.name || 'Calon (Tanpa Nama)'}${attemptBadge}</td>
                         <td style="color: var(--text-secondary); font-size: 0.88rem;">${r.group || '-'}</td>
                         <td style="text-align: center; font-family: var(--font-mono); font-weight: 700; color: ${isLulus ? 'var(--color-green)' : 'var(--color-danger)'};">${r.score !== undefined ? r.score : 0} / ${r.total || 10}</td>
                         <td style="text-align: center; font-family: var(--font-mono); font-weight: 600;">${r.percentage !== undefined ? r.percentage : 0}%</td>
@@ -741,25 +902,28 @@ function doPost(e) {
         }
 
         function eksportCSV() {
-            if (allRecords.length === 0) {
+            const recordsToExport = dapatkanRekodDiproses();
+            if (recordsToExport.length === 0) {
                 alert("Tiada rekod data untuk dieksport.");
                 return;
             }
 
-            let csv = "Bil,Tarikh & Masa,Nama Calon,Program / Kelas,Markah,Jumlah Soalan,Peratus (%),Status\n";
-            allRecords.forEach((r, i) => {
+            let csv = "Bil,Tarikh & Masa,Nama Calon,Program / Kelas,Markah,Jumlah Soalan,Peratus (%),Status,Bil Cubaan\n";
+            recordsToExport.forEach((r, i) => {
                 const isLulus = r.status === 'LULUS' || (Number(r.percentage) >= 75);
                 const status = isLulus ? 'LULUS' : 'GAGAL';
                 const safeName = `"${(r.name || '').replace(/"/g, '""')}"`;
                 const safeGroup = `"${(r.group || '').replace(/"/g, '""')}"`;
-                csv += `${i + 1},"${r.timestamp || '-'}",${safeName},${safeGroup},${r.score || 0},${r.total || 10},${r.percentage || 0}%,${status}\n`;
+                const cubaan = r._attemptCount || 1;
+                csv += `${i + 1},"${r.timestamp || '-'}",${safeName},${safeGroup},${r.score || 0},${r.total || 10},${r.percentage || 0}%,${status},${cubaan}\n`;
             });
 
+            const modeLabel = analysisMode === 'best' ? 'Markah_Terbaik' : 'Semua_Percubaan';
             const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Statistik_PdP_ADAS_${new Date().toISOString().slice(0,10)}.csv`;
+            a.download = `Statistik_PdP_ADAS_${modeLabel}_${new Date().toISOString().slice(0,10)}.csv`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
