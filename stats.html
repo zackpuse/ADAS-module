@@ -633,8 +633,19 @@ function doPost(e) {
         let passFailChart = null;
         let analysisMode = 'best'; // 'best' (lalai) atau 'all'
 
-        // KATA LALUAN KESELAMATAN PENTADBIR
-        const ADAS_ADMIN_PASSWORDS = ['adas2026', 'admin2026', 'adas@admin2026'];
+        // KESELAMATAN KRIPTOGRAFI PENTADBIR (SHA-256 + Garam Kripto)
+        // Kata laluan TIDAK disimpan dalam bentuk teks biasa (plaintext) dalam kod sumber.
+        // Hanya hash kriptografi sehala (one-way digest) yang disemak.
+        const ADAS_SALT = "@MIPAC_TVET_ADAS_2026#SECURE!";
+        const ADAS_AUTH_HASH = "ee9855737137a483678f97dd4c025d781cfbc53fbaae25e7a40f76b3c574f668";
+
+        async function hitungHashKripto(teks, garam) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(teks + garam);
+            const buffer = await crypto.subtle.digest('SHA-256', data);
+            const array = Array.from(new Uint8Array(buffer));
+            return array.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             const savedUrl = localStorage.getItem('adas_google_script_url');
@@ -692,10 +703,10 @@ function doPost(e) {
                 return;
             }
 
-            const customPass = localStorage.getItem('adas_admin_custom_password');
-            const isValid = ADAS_ADMIN_PASSWORDS.includes(password.toLowerCase()) || 
-                            ADAS_ADMIN_PASSWORDS.includes(password) || 
-                            (customPass && password === customPass);
+            // Sahkan menggunakan SHA-256 kripto hash sehala
+            const inputHash = await hitungHashKripto(password, ADAS_SALT);
+            const customHash = localStorage.getItem('adas_admin_custom_hash');
+            const isValid = (inputHash === ADAS_AUTH_HASH) || (customHash && inputHash === customHash);
 
             if (isValid) {
                 // Sah & Berjaya
