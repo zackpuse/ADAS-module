@@ -64,8 +64,8 @@ window.rekodKeputusanUjian = async function(record) {
     }
 };
 
-// Tarik data daripada Google Sheets (untuk papan pemuka statistik)
-window.tarikDataGoogleSheets = async function(customUrl) {
+// Tarik data daripada Google Sheets (dengan pengesahan kata laluan di pelayan)
+window.tarikDataGoogleSheets = async function(customUrl, authPassword) {
     const scriptUrl = customUrl || getActiveScriptUrl();
     if (!scriptUrl || !scriptUrl.startsWith('http')) {
         return {
@@ -77,7 +77,14 @@ window.tarikDataGoogleSheets = async function(customUrl) {
     }
 
     try {
-        const response = await fetch(scriptUrl.trim(), {
+        const savedSessionKey = sessionStorage.getItem('adas_admin_session_key') || '';
+        const keyToSend = authPassword || savedSessionKey;
+        const separator = scriptUrl.includes('?') ? '&' : '?';
+        const finalUrl = keyToSend 
+            ? `${scriptUrl.trim()}${separator}auth=${encodeURIComponent(keyToSend)}` 
+            : scriptUrl.trim();
+
+        const response = await fetch(finalUrl, {
             method: 'GET',
             headers: { 'Accept': 'application/json' }
         });
@@ -86,7 +93,19 @@ window.tarikDataGoogleSheets = async function(customUrl) {
             throw new Error(`HTTP Error: ${response.status}`);
         }
         
-        const data = await response.json();
+        const resJson = await response.json();
+
+        // Semak respons sekatan pelayan Google Apps Script
+        if (resJson && resJson.success === false) {
+            return {
+                success: false,
+                message: resJson.error || 'Akses ditolak: Kata laluan pentadbir tidak sah.',
+                data: [],
+                source: 'google_sheets'
+            };
+        }
+
+        const data = Array.isArray(resJson) ? resJson : (resJson.data || []);
         if (Array.isArray(data)) {
             // Kemaskini rekod tempatan dengan data terkini dari Google Sheets
             if (data.length > 0) {
@@ -102,10 +121,10 @@ window.tarikDataGoogleSheets = async function(customUrl) {
             throw new Error('Format data tidak sah');
         }
     } catch (err) {
-        console.warn('Gagal memuat turun dari Google Sheets, menggunakan data tempatan:', err);
+        console.warn('Gagal berhubung dengan pelayan Google Sheets:', err);
         return {
             success: false,
-            message: 'Tidak dapat berhubung dengan Google Sheets (' + err.message + '). Memaparkan data tempatan.',
+            message: 'Ralat sambungan pelayan: ' + err.message,
             data: getAdasLocalRecords(),
             source: 'local'
         };

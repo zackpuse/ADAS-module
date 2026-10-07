@@ -563,10 +563,23 @@
                 </button>
             </div>
             <pre class="code-box" id="app-script-code">function doGet(e) {
+  // 1. KATA LALUAN PENTADBIR (Tersimpan rahsia di pelayan Google Cloud, tidak dapat dilihat di HTML)
+  var ADMIN_PASSWORD = "adas2026"; 
+
+  // 2. Semak pengesahan kata laluan yang dihantar dari laman web
+  var authKey = (e && e.parameter && e.parameter.auth) ? String(e.parameter.auth) : "";
+  if (authKey !== ADMIN_PASSWORD) {
+    return ContentService.createTextOutput(JSON.stringify({ 
+      success: false, 
+      error: "Akses Ditolak: Kata laluan pentadbir tidak sah." 
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // 3. Jika sah, pelayan Google akan memulangkan data rekod pelajar
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   var rows = sheet.getDataRange().getValues();
   if (rows.length &lt;= 1) {
-    return ContentService.createTextOutput(JSON.stringify([]))
+    return ContentService.createTextOutput(JSON.stringify({ success: true, data: [] }))
       .setMimeType(ContentService.MimeType.JSON);
   }
   var results = [];
@@ -584,7 +597,7 @@
       status: r[7] || (Number(r[6]) &gt;= 75 ? 'LULUS' : 'GAGAL')
     });
   }
-  return ContentService.createTextOutput(JSON.stringify(results))
+  return ContentService.createTextOutput(JSON.stringify({ success: true, data: results }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -633,20 +646,6 @@ function doPost(e) {
         let passFailChart = null;
         let analysisMode = 'best'; // 'best' (lalai) atau 'all'
 
-        // KESELAMATAN KRIPTOGRAFI PENTADBIR (SHA-256 + Garam Kripto)
-        // Kata laluan TIDAK disimpan dalam bentuk teks biasa (plaintext) dalam kod sumber.
-        // Hanya hash kriptografi sehala (one-way digest) yang disemak.
-        const ADAS_SALT = "@MIPAC_TVET_ADAS_2026#SECURE!";
-        const ADAS_AUTH_HASH = "ee9855737137a483678f97dd4c025d781cfbc53fbaae25e7a40f76b3c574f668";
-
-        async function hitungHashKripto(teks, garam) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(teks + garam);
-            const buffer = await crypto.subtle.digest('SHA-256', data);
-            const array = Array.from(new Uint8Array(buffer));
-            return array.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             const savedUrl = localStorage.getItem('adas_google_script_url');
             if (savedUrl) {
@@ -693,6 +692,7 @@ function doPost(e) {
             if (e) e.preventDefault();
             const input = document.getElementById('input-auth-pass');
             const password = (input?.value || '').trim();
+            const btnSubmit = document.getElementById('btn-submit-auth');
             const errorBanner = document.getElementById('auth-error-banner');
             const errorText = document.getElementById('auth-error-text');
 
@@ -703,67 +703,89 @@ function doPost(e) {
                 return;
             }
 
-            // Sahkan menggunakan SHA-256 kripto hash sehala
-            const inputHash = await hitungHashKripto(password, ADAS_SALT);
-            const customHash = localStorage.getItem('adas_admin_custom_hash');
-            const isValid = (inputHash === ADAS_AUTH_HASH) || (customHash && inputHash === customHash);
+            if (!password) return;
 
-            if (isValid) {
-                // Sah & Berjaya
-                localStorage.removeItem('adas_auth_fail_count');
-                localStorage.removeItem('adas_auth_blocked_until');
-                sessionStorage.setItem('adas_admin_authenticated', 'true');
-                if (errorBanner) errorBanner.style.display = 'none';
-                bukaPapanPemuka();
-            } else {
-                // Gagal masukkan kata laluan
-                let failCount = (Number(localStorage.getItem('adas_auth_fail_count')) || 0) + 1;
-                localStorage.setItem('adas_auth_fail_count', failCount);
-                if (input) {
-                    input.value = '';
-                    input.focus();
-                }
+            // Tukar butang ke status pengesahan pelayan
+            const originalBtnHtml = btnSubmit ? btnSubmit.innerHTML : '';
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Mengesahkan dengan Pelayan...';
+            }
 
-                if (failCount >= 3) {
-                    // GAGAL 3 KALI BERTURUT-TURUT:
-                    // 1. Sekat selama 1 jam (3,600,000 ms)
-                    const blockExpiry = Date.now() + (60 * 60 * 1000);
-                    localStorage.setItem('adas_auth_blocked_until', blockExpiry);
-                    localStorage.setItem('adas_auth_fail_count', '0');
+            try {
+                // Hantar kata laluan ke pelayan Google Apps Script untuk pengesahan sulit (Server-side)
+                const res = await window.tarikDataGoogleSheets(null, password);
 
-                    // 2. IP Capture & log sekatan
-                    try {
-                        const controller = new AbortController();
-                        const timer = setTimeout(() => controller.abort(), 1200);
-                        fetch('https://api.ipify.org?format=json', { signal: controller.signal })
-                            .then(res => res.json())
-                            .then(data => {
-                                clearTimeout(timer);
-                                if (data && data.ip) {
-                                    localStorage.setItem('adas_blocked_ip', data.ip);
-                                    const logs = JSON.parse(localStorage.getItem('adas_security_logs') || '[]');
-                                    logs.unshift({
-                                        ip: data.ip,
-                                        tarikh: new Date().toLocaleString('ms-MY'),
-                                        alasan: 'Gagal kata laluan 3 kali berturut-turut'
-                                    });
-                                    localStorage.setItem('adas_security_logs', JSON.stringify(logs.slice(0, 30)));
-                                }
-                            })
-                            .catch(() => {})
-                            .finally(() => {
-                                kembaliHalamanSebelumnya();
-                            });
-                        setTimeout(() => kembaliHalamanSebelumnya(), 500);
-                    } catch (err) {
-                        kembaliHalamanSebelumnya();
-                    }
+                if (res.success) {
+                    // Sah & Berjaya disahkan oleh pelayan Google Cloud
+                    localStorage.removeItem('adas_auth_fail_count');
+                    localStorage.removeItem('adas_auth_blocked_until');
+                    sessionStorage.setItem('adas_admin_authenticated', 'true');
+                    sessionStorage.setItem('adas_admin_session_key', password);
+                    if (errorBanner) errorBanner.style.display = 'none';
+                    allRecords = res.data || [];
+                    bukaPapanPemuka();
                 } else {
-                    const baki = 3 - failCount;
-                    if (errorBanner && errorText) {
-                        errorText.textContent = `Kata laluan salah! Baki percubaan: ${baki}`;
-                        errorBanner.style.display = 'block';
+                    // Gagal: Pelayan menolak kata laluan
+                    let failCount = (Number(localStorage.getItem('adas_auth_fail_count')) || 0) + 1;
+                    localStorage.setItem('adas_auth_fail_count', failCount);
+                    if (input) {
+                        input.value = '';
+                        input.focus();
                     }
+
+                    if (failCount >= 3) {
+                        // GAGAL 3 KALI BERTURUT-TURUT:
+                        // 1. Sekat peranti selama 1 jam (3,600,000 ms)
+                        const blockExpiry = Date.now() + (60 * 60 * 1000);
+                        localStorage.setItem('adas_auth_blocked_until', blockExpiry);
+                        localStorage.setItem('adas_auth_fail_count', '0');
+
+                        // 2. IP Capture & rekod log keselamatan
+                        try {
+                            const controller = new AbortController();
+                            const timer = setTimeout(() => controller.abort(), 1200);
+                            fetch('https://api.ipify.org?format=json', { signal: controller.signal })
+                                .then(r => r.json())
+                                .then(data => {
+                                    clearTimeout(timer);
+                                    if (data && data.ip) {
+                                        localStorage.setItem('adas_blocked_ip', data.ip);
+                                        const logs = JSON.parse(localStorage.getItem('adas_security_logs') || '[]');
+                                        logs.unshift({
+                                            ip: data.ip,
+                                            tarikh: new Date().toLocaleString('ms-MY'),
+                                            alasan: 'Gagal kata laluan 3 kali (Pelayan menolak capaian)'
+                                        });
+                                        localStorage.setItem('adas_security_logs', JSON.stringify(logs.slice(0, 30)));
+                                    }
+                                })
+                                .catch(() => {})
+                                .finally(() => {
+                                    kembaliHalamanSebelumnya();
+                                });
+                            setTimeout(() => kembaliHalamanSebelumnya(), 400);
+                        } catch (err) {
+                            kembaliHalamanSebelumnya();
+                        }
+                    } else {
+                        const baki = 3 - failCount;
+                        if (errorBanner && errorText) {
+                            errorText.textContent = `${res.message || 'Kata laluan salah!'} (Baki percubaan: ${baki})`;
+                            errorBanner.style.display = 'block';
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Ralat pengesahan:', err);
+                if (errorBanner && errorText) {
+                    errorText.textContent = `Ralat sambungan pelayan: ${err.message}`;
+                    errorBanner.style.display = 'block';
+                }
+            } finally {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = originalBtnHtml;
                 }
             }
         }
