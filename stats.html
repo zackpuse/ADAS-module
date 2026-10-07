@@ -6,6 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Papan Pemuka Statistik PdP | SmartLine QR Rover</title>
     <meta name="robots" content="noindex, nofollow">
+    <!-- SEMAKAN SEKATAN KESELAMATAN PANTAS (Tiada notifikasi/kiraan masa, auto-redirect jika disekat) -->
+    <script>
+        (function() {
+            try {
+                var blockedUntil = Number(localStorage.getItem('adas_auth_blocked_until')) || 0;
+                if (blockedUntil && Date.now() < blockedUntil) {
+                    var prev = document.referrer;
+                    if (prev && prev !== window.location.href) {
+                        window.location.replace(prev);
+                    } else {
+                        window.location.replace('../index.html');
+                    }
+                }
+            } catch(e) {}
+        })();
+    </script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -248,18 +264,90 @@
             font-weight: 600;
             vertical-align: middle;
         }
+
+        /* GERBANG KESELAMATAN PENTADBIR */
+        .auth-overlay-container {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px 20px;
+            background: radial-gradient(circle at center, rgba(6, 182, 212, 0.08) 0%, rgba(15, 23, 42, 0.98) 70%);
+        }
+
+        .auth-card {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--color-cyan);
+            border-radius: var(--radius-lg);
+            padding: 38px 32px;
+            max-width: 460px;
+            width: 100%;
+            box-shadow: 0 0 40px rgba(6, 182, 212, 0.25);
+            text-align: center;
+            backdrop-filter: blur(12px);
+        }
     </style>
 </head>
 
 <body class="dark-theme">
-    <div class="stats-container">
+
+    <!-- GERBANG KESELAMATAN (PENGESAHAN KATA LALUAN PENTADBIR) -->
+    <div id="admin-auth-overlay" class="auth-overlay-container">
+        <div class="auth-card card-glow">
+            <div style="width: 70px; height: 70px; margin: 0 auto 18px; border-radius: 50%; background: rgba(6, 182, 212, 0.12); border: 1px solid var(--color-cyan); display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-shield-halved" style="font-size: 2rem; color: var(--color-cyan);"></i>
+            </div>
+
+            <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">
+                Akses Terhad Pentadbir
+            </h2>
+            <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6; margin-bottom: 22px;">
+                Papan pemuka statistik PdP mengandungi rekod analitik &amp; markah calon. Sila masukkan kata laluan untuk meneruskan.
+            </p>
+
+            <!-- NOTIFIKASI RALAT KATA LALUAN -->
+            <div id="auth-error-banner" style="display: none; padding: 11px 14px; border-radius: 8px; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--color-danger); color: #ef4444; font-size: 0.85rem; margin-bottom: 18px; text-align: left;">
+                <i class="fa-solid fa-triangle-exclamation"></i> <span id="auth-error-text">Kata laluan tidak sah.</span>
+            </div>
+
+            <!-- BORANG KATA LALUAN -->
+            <form onsubmit="sahkanKataLaluan(event)" style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="text-align: left;">
+                    <label for="input-auth-pass" style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        Kata Laluan:
+                    </label>
+                    <div style="position: relative;">
+                        <input type="password" id="input-auth-pass" placeholder="Masukkan kata laluan..." required autocomplete="current-password"
+                            style="width: 100%; padding: 12px 42px 12px 14px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-dark); color: white; font-size: 0.95rem; font-family: var(--font-mono); outline: none; transition: border-color 0.2s;"
+                            onfocus="this.style.borderColor='var(--color-cyan)'" onblur="this.style.borderColor='var(--border-color)'">
+                        <button type="button" onclick="togglePasswordVisibility()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.95rem;" title="Papar/Sembunyi kata laluan">
+                            <i class="fa-solid fa-eye" id="toggle-pass-icon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="btn-submit-auth" style="width: 100%; padding: 12px; font-size: 0.95rem; font-weight: 700; margin-top: 4px;">
+                    <i class="fa-solid fa-key"></i> Sahkan &amp; Masuk
+                </button>
+            </form>
+
+            <div style="margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                <a href="javascript:void(0)" onclick="kembaliHalamanSebelumnya()" class="btn btn-outline" style="text-decoration: none; width: 100%; justify-content: center; font-size: 0.88rem;">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali ke Halaman Sebelumnya
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- KANDUNGAN UTAMA PAPAN PEMUKA (DISEMBUNYIKAN SECARA LALAI SEHINGGA DISAHKAN) -->
+    <div class="stats-container" id="stats-main-content" style="display: none;">
 
         <!-- HEADER -->
         <header class="stats-header">
             <div>
                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
                     <span style="background: rgba(6, 182, 212, 0.2); color: var(--color-cyan); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--color-cyan);">
-                        <i class="fa-solid fa-lock"></i> PORTAL PENTADBIR & PENYELIDIK
+                        <i class="fa-solid fa-lock"></i> PORTAL PENTADBIR &amp; PENYELIDIK
                     </span>
                     <span id="conn-status-badge" style="background: rgba(245, 158, 11, 0.2); color: var(--color-amber); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1px solid var(--color-amber);">
                         <i class="fa-solid fa-circle-notch fa-spin"></i> Memeriksa Sambungan...
@@ -287,6 +375,9 @@
                 </button>
                 <button class="btn btn-primary" onclick="bukaModalGoogleSheet()">
                     <i class="fa-brands fa-google-drive"></i> Tetapan Google Sheet
+                </button>
+                <button class="btn btn-outline" onclick="kunciPapanPemuka()" title="Kunci semula papan pemuka" style="border-color: rgba(239, 68, 68, 0.4); color: #f87171;">
+                    <i class="fa-solid fa-lock"></i> Kunci
                 </button>
                 <a href="index.html" class="btn btn-outline" style="text-decoration: none;" title="Kembali ke laman pembelajaran pelajar">
                     <i class="fa-solid fa-arrow-left"></i> Modul Pelajar
@@ -542,13 +633,165 @@ function doPost(e) {
         let passFailChart = null;
         let analysisMode = 'best'; // 'best' (lalai) atau 'all'
 
+        // KATA LALUAN KESELAMATAN PENTADBIR
+        const ADAS_ADMIN_PASSWORDS = ['adas2026', 'admin2026', 'adas@admin2026'];
+
         document.addEventListener('DOMContentLoaded', () => {
             const savedUrl = localStorage.getItem('adas_google_script_url');
             if (savedUrl) {
                 document.getElementById('input-gsheet-url').value = savedUrl;
             }
-            muatDataStatistik(false);
+            semakSekatanDanAkses();
         });
+
+        function semakSekatanDanAkses() {
+            // 1. Semak sekatan aktif 1 jam
+            const blockedUntil = Number(localStorage.getItem('adas_auth_blocked_until')) || 0;
+            if (blockedUntil && Date.now() < blockedUntil) {
+                // PERINGATAN: tiada notification/countdown kepada pengguna, auto-redirect serta-merta
+                kembaliHalamanSebelumnya();
+                return false;
+            }
+
+            // Jika tempoh 1 jam telah berlalu, bersihkan sekatan lama
+            if (blockedUntil && Date.now() >= blockedUntil) {
+                localStorage.removeItem('adas_auth_blocked_until');
+                localStorage.removeItem('adas_auth_fail_count');
+            }
+
+            // 2. Semak jika pengguna sudah log masuk dalam sesi semasa
+            if (sessionStorage.getItem('adas_admin_authenticated') === 'true') {
+                bukaPapanPemuka();
+                return true;
+            }
+
+            // Kunci paparan, buka overlay kata laluan
+            const authOverlay = document.getElementById('admin-auth-overlay');
+            const mainContent = document.getElementById('stats-main-content');
+            if (authOverlay) authOverlay.style.display = 'flex';
+            if (mainContent) mainContent.style.display = 'none';
+
+            setTimeout(() => {
+                const passInput = document.getElementById('input-auth-pass');
+                if (passInput) passInput.focus();
+            }, 100);
+            return false;
+        }
+
+        async function sahkanKataLaluan(e) {
+            if (e) e.preventDefault();
+            const input = document.getElementById('input-auth-pass');
+            const password = (input?.value || '').trim();
+            const errorBanner = document.getElementById('auth-error-banner');
+            const errorText = document.getElementById('auth-error-text');
+
+            // Semak sekatan aktif
+            const blockedUntil = Number(localStorage.getItem('adas_auth_blocked_until')) || 0;
+            if (blockedUntil && Date.now() < blockedUntil) {
+                kembaliHalamanSebelumnya();
+                return;
+            }
+
+            const customPass = localStorage.getItem('adas_admin_custom_password');
+            const isValid = ADAS_ADMIN_PASSWORDS.includes(password.toLowerCase()) || 
+                            ADAS_ADMIN_PASSWORDS.includes(password) || 
+                            (customPass && password === customPass);
+
+            if (isValid) {
+                // Sah & Berjaya
+                localStorage.removeItem('adas_auth_fail_count');
+                localStorage.removeItem('adas_auth_blocked_until');
+                sessionStorage.setItem('adas_admin_authenticated', 'true');
+                if (errorBanner) errorBanner.style.display = 'none';
+                bukaPapanPemuka();
+            } else {
+                // Gagal masukkan kata laluan
+                let failCount = (Number(localStorage.getItem('adas_auth_fail_count')) || 0) + 1;
+                localStorage.setItem('adas_auth_fail_count', failCount);
+                if (input) {
+                    input.value = '';
+                    input.focus();
+                }
+
+                if (failCount >= 3) {
+                    // GAGAL 3 KALI BERTURUT-TURUT:
+                    // 1. Sekat selama 1 jam (3,600,000 ms)
+                    const blockExpiry = Date.now() + (60 * 60 * 1000);
+                    localStorage.setItem('adas_auth_blocked_until', blockExpiry);
+                    localStorage.setItem('adas_auth_fail_count', '0');
+
+                    // 2. IP Capture & log sekatan
+                    try {
+                        const controller = new AbortController();
+                        const timer = setTimeout(() => controller.abort(), 1200);
+                        fetch('https://api.ipify.org?format=json', { signal: controller.signal })
+                            .then(res => res.json())
+                            .then(data => {
+                                clearTimeout(timer);
+                                if (data && data.ip) {
+                                    localStorage.setItem('adas_blocked_ip', data.ip);
+                                    const logs = JSON.parse(localStorage.getItem('adas_security_logs') || '[]');
+                                    logs.unshift({
+                                        ip: data.ip,
+                                        tarikh: new Date().toLocaleString('ms-MY'),
+                                        alasan: 'Gagal kata laluan 3 kali berturut-turut'
+                                    });
+                                    localStorage.setItem('adas_security_logs', JSON.stringify(logs.slice(0, 30)));
+                                }
+                            })
+                            .catch(() => {})
+                            .finally(() => {
+                                kembaliHalamanSebelumnya();
+                            });
+                        setTimeout(() => kembaliHalamanSebelumnya(), 500);
+                    } catch (err) {
+                        kembaliHalamanSebelumnya();
+                    }
+                } else {
+                    const baki = 3 - failCount;
+                    if (errorBanner && errorText) {
+                        errorText.textContent = `Kata laluan salah! Baki percubaan: ${baki}`;
+                        errorBanner.style.display = 'block';
+                    }
+                }
+            }
+        }
+
+        function bukaPapanPemuka() {
+            const authOverlay = document.getElementById('admin-auth-overlay');
+            const mainContent = document.getElementById('stats-main-content');
+            if (authOverlay) authOverlay.style.display = 'none';
+            if (mainContent) mainContent.style.display = 'block';
+            muatDataStatistik(false);
+        }
+
+        function kunciPapanPemuka() {
+            sessionStorage.removeItem('adas_admin_authenticated');
+            window.location.reload();
+        }
+
+        function kembaliHalamanSebelumnya() {
+            if (window.history.length > 1 && document.referrer && document.referrer !== window.location.href) {
+                window.history.back();
+            } else {
+                window.location.href = '../index.html';
+            }
+        }
+
+        function togglePasswordVisibility() {
+            const input = document.getElementById('input-auth-pass');
+            const icon = document.getElementById('toggle-pass-icon');
+            if (!input || !icon) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
 
         function tukarModAnalisis(mod) {
             analysisMode = mod;

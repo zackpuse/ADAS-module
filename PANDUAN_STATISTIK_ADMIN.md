@@ -16,9 +16,18 @@ Dokumen ini mengandungi maklumat penting dan pautan capaian rahsia untuk semakan
 
 ---
 
-## 🔒 Keselamatan & Kerahsiaan Pautan
-* Pautan ke `stats.html` **TIDAK dipaparkan pada mana-mana menu atau navigasi umum** di laman pelajar (`index.html`).
-* Hanya pentadbir/penyelidik yang mempunyai URL di atas sahaja boleh membuka papan pemuka ini.
+## 🔒 Keselamatan & Kawalan Akses Pentadbir
+Papan pemuka `stats.html` kini dilindungi dengan **Gerbang Keselamatan Kata Laluan**:
+* **Kata Laluan Lalai Pentadbir:** `adas2026` (atau `admin2026`)
+* **Butang Kembali:** Terdapat butang "Kembali ke Halaman Sebelumnya" bagi pelawat yang tiada kata laluan.
+* **Peraturan Sekatan 3 Kali Gagal:**
+  - Calon/pengguna hanya dibenarkan **3 kali percubaan** kata laluan.
+  - Sekiranya gagal 3 kali berturut-turut:
+    1. Sistem secara automatik merakam alamat IP klien ke dalam log keselamatan peranti.
+    2. Sistem menyekat akses peranti tersebut selama **1 jam**.
+    3. Pengguna dialihkan semula (*auto redirect*) ke halaman sebelumnya serta-merta.
+  - **Nota Penting Polisi Sekatan:** Sepanjang tempoh sekatan 1 jam tersebut, **tiada sebarang notifikasi atau paparan kiraan masa (*countdown*)** dipaparkan kepada pengguna. Sebarang percubaan membuka laman akan terus dialihkan (*auto-redirect*) ke halaman sebelumnya secara senyap.
+* **Fungsi Kunci:** Butang "Kunci" disediakan di bar atas untuk log keluar dan mengunci semula papan pemuka.
 
 ---
 
