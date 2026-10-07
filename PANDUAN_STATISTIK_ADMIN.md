@@ -10,9 +10,9 @@ Dokumen ini mengandungi maklumat penting dan pautan capaian rahsia untuk semakan
 | :--- | :--- | :--- |
 | **🌐 Laman Statistik Online (GitHub)** | [https://zackpuse.github.io/ADAS-module/stats.html](https://zackpuse.github.io/ADAS-module/stats.html) | Pautan rahsia untuk semakan visual data, graf gred, dan nisbah kelulusan secara online. |
 | **💻 Laman Statistik Tempatan (Local)** | [`stats.html`](file:///d:/Mipac%20Tvet/Modul%20ADAS/stats.html) | Buka terus fail ini di browser komputer anda jika bekerja secara offline. |
-| **📑 Google Spreadsheet Sebenar** | [Helaian Google Sheets (Klik Sini)](https://docs.google.com/spreadsheets/d/1gm01nOcXAatOD5dQspxTWbU6LhRjodtgNBfP8s6JNCw/edit) | Pangkalan data awan di Google Drive yang mengumpul rekod markah pelajar. |
-| **⚙️ Google Apps Script Web App** | [Web App Endpoint (/exec)](https://script.google.com/macros/s/AKfycbwgnDAkEYwn03slsFaVr2HbG3yBVy_VV4Pb5TjuerGJg3JIElmprVNU2oK0MCBrYGAp/exec) | Jambatan API yang menghantar data daripada web browser ke Google Sheets. |
-| **📚 Apps Script Library** | [Library URL](https://script.google.com/macros/library/d/1XnUFQ_87xgKe8z5FbCnlAj4eltibgw3CxbcGX6p1WAo6JZ6iHTS19gqa/1) | Rujukan library Apps Script projek. |
+| **📑 Google Spreadsheet Sebenar** | [Helaian Google Sheets (Klik Sini)](link sheet) | Pangkalan data awan di Google Drive yang mengumpul rekod markah pelajar. |
+| **⚙️ Google Apps Script Web App** | [Web App Endpoint (/exec)](app script link) | Jambatan API yang menghantar data daripada web browser ke Google Sheets. |
+| **📚 Apps Script Library** | [Library URL](app script library) | Rujukan library Apps Script projek. |
 
 ---
 
